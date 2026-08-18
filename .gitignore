@@ -1,0 +1,5 @@
+# Harness working directory. The event log and revised-spec.md are the audit
+# trail and belong in version control; the derived view and generated index do not.
+.harness/state.json
+.harness/index/
+.harness/worktrees/
