@@ -3,3 +3,23 @@
 .harness/state.json
 .harness/index/
 .harness/worktrees/
+
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build output
+dist/
+dist-types/
+*.tsbuildinfo
+
+# Test / coverage output
+coverage/
+playwright-report/
+test-results/
+
+# Vite
+.vite/
+
+# Editor / OS
+.DS_Store

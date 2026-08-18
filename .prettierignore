@@ -1,0 +1,19 @@
+dist
+dist-types
+node_modules
+.pnpm-store
+coverage
+playwright-report
+test-results
+.vite
+pnpm-lock.yaml
+*.tsbuildinfo
+
+# Pre-existing content outside this ticket's boundary (T-001 must not
+# reformat files it did not create — see the Developer contract's "no
+# unrelated files modified" rule). Only the top-level architecture-doc set
+# is excluded; docs/architecture, docs/astronomy, docs/decisions and
+# docs/validation are created by this ticket and are formatted normally.
+/docs/*.md
+.harness/**
+.devcontainer/**
