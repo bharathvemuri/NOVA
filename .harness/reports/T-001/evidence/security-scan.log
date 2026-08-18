@@ -1,0 +1,2 @@
+$ semgrep scan --config auto --error --quiet .
+--- started 2026-08-18T19:16:43Z ---

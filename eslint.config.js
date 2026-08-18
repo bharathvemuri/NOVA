@@ -97,7 +97,7 @@ export default tseslint.config(
     // and workspace edges into anything that carries those dependencies.
     // Superset of the generic packages/** block above (also blocks
     // @nova/web / @nova/api), so it is safe for this to win on override.
-    files: ['packages/astronomy/**/*.ts'],
+    files: ['packages/astronomy/**/*.ts', 'packages/astronomy/**/*.tsx'],
     rules: {
       'no-restricted-imports': [
         'error',

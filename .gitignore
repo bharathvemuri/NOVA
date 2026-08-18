@@ -23,3 +23,8 @@ test-results/
 
 # Editor / OS
 .DS_Store
+
+# Transient fixtures written by tests/boundaries/lint-boundaries.spec.ts into
+# real package src/ directories; removed in afterEach, but ignored too so a
+# survivor from a hard process kill can never be committed (plan §9 S3).
+**/__eslint_boundary_fixture__.*

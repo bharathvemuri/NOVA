@@ -32,6 +32,10 @@ const ASTRONOMY_FIXTURE = path.join(
   repoRoot,
   'packages/astronomy/src/__eslint_boundary_fixture__.ts',
 );
+const ASTRONOMY_TSX_FIXTURE = path.join(
+  repoRoot,
+  'packages/astronomy/src/__eslint_boundary_fixture__.tsx',
+);
 const RENDERER_FIXTURE = path.join(
   repoRoot,
   'packages/renderer/src/__eslint_boundary_fixture__.ts',
@@ -90,6 +94,40 @@ describe('ESLint import-level boundary enforcement (AC 7 / AC 8 — plan §6 lay
       // One no-restricted-imports error per forbidden import statement, on
       // its own line — proves each import was individually caught, not
       // just that *some* violation fired.
+      expect(lines).toEqual(forbidden.map((_, i) => i + 1));
+      expect(messages.filter((m) => m.ruleId === 'no-restricted-imports')).toHaveLength(
+        forbidden.length,
+      );
+    },
+    ESLINT_TEST_TIMEOUT,
+  );
+
+  it(
+    // The astronomy block above originally matched only `**/*.ts`, so a
+    // `.tsx` file fell through to the generic packages/** block (line ~80)
+    // and was restricted from @nova/web/@nova/api only — not from three,
+    // react, react-dom or express. packages/astronomy/tsconfig.json's
+    // `include: ["src"]` picks up `.tsx` alongside `.ts`, so such a file is
+    // a real, compilable location, not a hypothetical one. Plan §9 S1.
+    'flags every forbidden import inside a packages/astronomy .tsx file, same as .ts',
+    async () => {
+      const forbidden = [
+        'three',
+        'react',
+        'react-dom',
+        'express',
+        '@nova/renderer',
+        '@nova/web',
+        '@nova/api',
+      ];
+      const code =
+        forbidden.map((spec, i) => `import * as m${i} from '${spec}';`).join('\n') +
+        '\n\n' +
+        `export const touched = [${forbidden.map((_, i) => `m${i}`).join(', ')}];\n`;
+
+      const messages = await lintFixture(ASTRONOMY_TSX_FIXTURE, code);
+      const lines = restrictedImportLines(messages);
+
       expect(lines).toEqual(forbidden.map((_, i) => i + 1));
       expect(messages.filter((m) => m.ruleId === 'no-restricted-imports')).toHaveLength(
         forbidden.length,
