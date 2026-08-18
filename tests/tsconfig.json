@@ -7,5 +7,5 @@
     "types": ["node"],
     "allowJs": true
   },
-  "include": ["boundaries/**/*.ts", "e2e/**/*.ts", "../scripts/**/*.mjs"]
+  "include": ["boundaries/**/*.ts", "e2e/**/*.ts", "dom-exclusion/*.spec.ts", "../scripts/**/*.mjs"]
 }

@@ -64,8 +64,39 @@ export default tseslint.config(
     },
   },
   {
+    // AC 8, generalised: no package under packages/ may depend on an app.
+    //
+    // This block is declared FIRST and the more specific astronomy/renderer
+    // blocks below are declared LAST, because ESLint flat config *replaces*
+    // a rule's options when multiple config objects match the same file - it
+    // does not merge them. Whichever object matching a given file appears
+    // last in this array wins entirely. Astronomy's and renderer's groups
+    // are both supersets of this generic one (they include `@nova/web`/
+    // `@nova/api` plus their own package-specific restrictions), so ordering
+    // them after this block preserves the generic restriction rather than
+    // silently discarding it. Do not reorder without re-verifying that
+    // invariant - see tests/boundaries/lint-boundaries.spec.ts, which fails
+    // loudly if it is ever violated again.
+    files: ['packages/**/*.ts', 'packages/**/*.tsx'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              group: ['@nova/web', '@nova/web/*', '@nova/api', '@nova/api/*'],
+              message: 'AC 8: packages/* must not depend on apps/*.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // ADR-001 / 001 §7.1: astronomy must stay free of rendering, UI, HTTP
     // and workspace edges into anything that carries those dependencies.
+    // Superset of the generic packages/** block above (also blocks
+    // @nova/web / @nova/api), so it is safe for this to win on override.
     files: ['packages/astronomy/**/*.ts'],
     rules: {
       'no-restricted-imports': [
@@ -96,7 +127,10 @@ export default tseslint.config(
     },
   },
   {
-    // AC 8: renderer must not depend on React or Express.
+    // AC 8: renderer must not depend on React or Express. Also carries the
+    // generic packages/**  restriction (@nova/web / @nova/api) forward
+    // explicitly, since this block overrides - rather than merges with -
+    // the generic block above for every file it matches.
     files: ['packages/renderer/**/*.ts', 'packages/renderer/**/*.tsx'],
     rules: {
       'no-restricted-imports': [
@@ -104,25 +138,17 @@ export default tseslint.config(
         {
           patterns: [
             {
-              group: ['react', 'react-dom', 'react/*', 'express', '@nova/api', '@nova/api/*'],
-              message: 'AC 8: packages/renderer must not depend on React or Express.',
-            },
-          ],
-        },
-      ],
-    },
-  },
-  {
-    // AC 8, generalised: no package under packages/ may depend on an app.
-    files: ['packages/**/*.ts', 'packages/**/*.tsx'],
-    rules: {
-      'no-restricted-imports': [
-        'error',
-        {
-          patterns: [
-            {
-              group: ['@nova/web', '@nova/web/*', '@nova/api', '@nova/api/*'],
-              message: 'AC 8: packages/* must not depend on apps/*.',
+              group: [
+                'react',
+                'react-dom',
+                'react/*',
+                'express',
+                '@nova/api',
+                '@nova/api/*',
+                '@nova/web',
+                '@nova/web/*',
+              ],
+              message: 'AC 8: packages/renderer must not depend on React, Express, or any app.',
             },
           ],
         },
