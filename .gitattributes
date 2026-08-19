@@ -1,0 +1,24 @@
+# Line endings are normalised to LF in the index *and* in the working tree on
+# every platform. `eol=lf` (not just `text=auto`) is required: this repo is
+# developed on a Windows host where `core.autocrlf=true` would otherwise write
+# CRLF working-tree files, which fails `prettier --check` (.prettierrc.json
+# sets "endOfLine": "lf") and reddens the CI lint gate. See T-001 finding A-001.
+* text=auto eol=lf
+
+# Binary assets must never be line-ending-normalised. The CC-BY texture maps
+# (THIRD_PARTY_ASSETS) and any future reference-data kernels land here.
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.gif  binary
+*.webp binary
+*.ico  binary
+*.woff binary
+*.woff2 binary
+*.ttf  binary
+*.otf  binary
+*.mp4  binary
+*.zip  binary
+*.gz   binary
+*.pdf  binary
+*.bsp  binary
