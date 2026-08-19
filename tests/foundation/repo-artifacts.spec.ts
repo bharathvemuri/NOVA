@@ -13,6 +13,25 @@ import { describe, expect, it } from 'vitest';
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
 
+describe('.gitignore excludes harness agent stage artifacts (T-001 cycle 3, S2)', () => {
+  it('anchors all four known artifact paths so they cannot fail `prettier --check`', async () => {
+    const gitignore = await readFile(path.join(repoRoot, '.gitignore'), 'utf8');
+    for (const artifact of [
+      '/semgrep_out.json',
+      '/semgrep_stderr.log',
+      '/sec_out.log',
+      '/sec_err.log',
+    ]) {
+      expect(gitignore, `.gitignore missing anchored entry ${artifact}`).toContain(artifact);
+    }
+  });
+
+  it('control: an unanchored bare pattern would not satisfy the assertion above', () => {
+    const withoutAnchor = '# artifacts\nsemgrep_out.json\n';
+    expect(withoutAnchor).not.toContain('/semgrep_out.json');
+  });
+});
+
 describe('AC 10 — LICENSE, THIRD_PARTY_ASSETS ledger, README stub, docs tree', () => {
   it('LICENSE is MIT', async () => {
     const license = await readFile(path.join(repoRoot, 'LICENSE'), 'utf8');

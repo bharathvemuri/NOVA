@@ -28,3 +28,12 @@ test-results/
 # real package src/ directories; removed in afterEach, but ignored too so a
 # survivor from a hard process kill can never be committed (plan §9 S3).
 **/__eslint_boundary_fixture__.*
+
+# Artifacts written into the worktree root by harness agent stages (Security's
+# semgrep run, stage stdout/stderr capture). Never repository content; they
+# appear mid-run and would otherwise be committed and fail `prettier --check`
+# (Prettier honours .gitignore by default).
+/semgrep_out.json
+/semgrep_stderr.log
+/sec_out.log
+/sec_err.log

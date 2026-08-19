@@ -80,7 +80,11 @@ for the enforcement design.
 - `pnpm test:e2e` — Playwright end-to-end tests. Playwright's `webServer`
   runs `vite preview`, which serves `apps/web/dist`; run `pnpm build` first
   on a clean checkout (`pnpm build && pnpm test:e2e`), otherwise the preview
-  server has nothing to serve.
+  server has nothing to serve. On a clean checkout you must also install
+  Playwright's browsers once: `pnpm exec playwright install --with-deps
+chromium` (CI does this automatically; a fresh local container will not
+  have downloaded them and `pnpm test:e2e` fails with `browserType.launch:
+Executable doesn't exist at …` until you do).
 - `pnpm check:boundaries` — dependency-boundary graph check
 
 ## AI Development Workflow
