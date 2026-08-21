@@ -4,7 +4,8 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "lib": ["ES2022"],
-    "types": []
+    "types": [],
+    "skipLibCheck": false
   },
   "include": ["src"],
   "references": [{ "path": "../shared" }]

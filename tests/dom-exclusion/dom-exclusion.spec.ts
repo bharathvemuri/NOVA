@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
@@ -108,4 +109,90 @@ describe('packages/astronomy DOM-API exclusion (AC 7)', () => {
     expect(result.status).toBe(0);
     expect(result.stdout.trim()).toBe('');
   });
+});
+
+// --- Transitive reference-closure coverage (T-001 cycle 3, A-001) --------
+//
+// The two tests above prove astronomy's *own* tsconfig excludes DOM. They
+// say nothing about what astronomy pulls in via TypeScript project
+// references: tsconfig.base.json sets "skipLibCheck": true, so a DOM type
+// reaching astronomy through packages/shared's emitted .d.ts is invisible to
+// `tsc -b` and to every other existing gate. Putting "DOM" back into
+// packages/shared/tsconfig.json's `lib` today would not fail `pnpm
+// typecheck`, `pnpm lint`, `pnpm check:boundaries`, or the two tests above -
+// this block closes that gap by asserting the structural invariant directly
+// on the tsconfig *inputs*, over the whole transitive reference closure
+// rather than astronomy alone.
+
+interface TsconfigJson {
+  extends?: string;
+  compilerOptions?: Record<string, unknown>;
+  references?: Array<{ path: string }>;
+}
+
+function readTsconfigJson(configPath: string): TsconfigJson {
+  return JSON.parse(readFileSync(configPath, 'utf8')) as TsconfigJson;
+}
+
+// Merges a tsconfig's `compilerOptions` with those inherited via `extends`,
+// matching tsc's own precedence (the extending file wins). Recurses so a
+// multi-level `extends` chain resolves correctly, though this repo only has
+// one level today.
+function resolveEffectiveCompilerOptions(configPath: string): Record<string, unknown> {
+  const config = readTsconfigJson(configPath);
+  const base = config.extends
+    ? resolveEffectiveCompilerOptions(path.resolve(path.dirname(configPath), config.extends))
+    : {};
+  return { ...base, ...(config.compilerOptions ?? {}) };
+}
+
+// Walks `references[].path` transitively from `startConfigPath`, returning
+// the absolute path of every tsconfig.json reached, including the start
+// file itself. General on purpose: today astronomy references only
+// packages/shared, but this must keep working unchanged if astronomy gains
+// further references later.
+function collectReferenceClosure(startConfigPath: string): string[] {
+  const seen = new Set<string>();
+  const stack = [startConfigPath];
+  while (stack.length > 0) {
+    const configPath = stack.pop() as string;
+    if (seen.has(configPath)) continue;
+    seen.add(configPath);
+    const config = readTsconfigJson(configPath);
+    for (const ref of config.references ?? []) {
+      const refTarget = path.resolve(path.dirname(configPath), ref.path);
+      stack.push(refTarget.endsWith('.json') ? refTarget : path.join(refTarget, 'tsconfig.json'));
+    }
+  }
+  return [...seen];
+}
+
+const astronomyReferenceClosure = collectReferenceClosure(astronomyTsconfig);
+const astronomyReferenceClosureLabels = astronomyReferenceClosure.map((configPath) =>
+  path.relative(repoRoot, configPath),
+);
+
+describe("packages/astronomy's transitive tsconfig reference closure excludes DOM (AC 7)", () => {
+  it('the closure is non-empty and actually reaches packages/shared (a walk over nothing cannot fail)', () => {
+    expect(astronomyReferenceClosureLabels.length).toBeGreaterThanOrEqual(2);
+    expect(astronomyReferenceClosureLabels).toContain(
+      path.join('packages', 'astronomy', 'tsconfig.json'),
+    );
+    expect(astronomyReferenceClosureLabels).toContain(
+      path.join('packages', 'shared', 'tsconfig.json'),
+    );
+  });
+
+  it.each(astronomyReferenceClosureLabels)(
+    '%s has no DOM/webworker lib entry and an empty "types" array',
+    (label) => {
+      const configPath = path.join(repoRoot, label);
+      const options = resolveEffectiveCompilerOptions(configPath);
+      const lib = (options.lib as string[] | undefined) ?? [];
+      const domLike = lib.filter((entry) => /^dom/i.test(entry) || /^webworker/i.test(entry));
+
+      expect(domLike, `${label} lib=${JSON.stringify(lib)}`).toEqual([]);
+      expect(options.types, `${label} types=${JSON.stringify(options.types)}`).toEqual([]);
+    },
+  );
 });
