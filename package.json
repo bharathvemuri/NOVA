@@ -1,0 +1,36 @@
+{
+  "name": "nova",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "packageManager": "pnpm@10.34.5",
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "scripts": {
+    "typecheck": "tsc -b",
+    "build": "tsc -b && pnpm --filter @nova/web build",
+    "lint": "pnpm lint:eslint && pnpm lint:format",
+    "lint:eslint": "eslint .",
+    "lint:format": "prettier --check .",
+    "format": "prettier --write .",
+    "check:boundaries": "node scripts/check-boundaries.mjs",
+    "pretest": "tsc -b",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
+    "verify": "pnpm check:boundaries && pnpm typecheck && pnpm lint && pnpm test && pnpm build",
+    "clean": "tsc -b --clean"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@playwright/test": "1.62.1",
+    "@types/node": "^20",
+    "eslint": "10.8.1",
+    "eslint-config-prettier": "10.1.8",
+    "globals": "17.11.0",
+    "prettier": "3.9.6",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.67.0",
+    "vitest": "4.1.11"
+  }
+}

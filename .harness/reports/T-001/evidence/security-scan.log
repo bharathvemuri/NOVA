@@ -1,0 +1,7 @@
+$ semgrep scan --config p/security-audit --config p/secrets --config p/javascript --config p/typescript --error --quiet --exclude node_modules --exclude .pnpm-store --exclude dist --exclude test-results --exclude tests/dist .
+--- started 2026-08-21T15:28:37Z ---
+--- exit 0 ---
+$ pnpm audit --audit-level high
+--- started 2026-08-21T15:29:12Z ---
+No known vulnerabilities found
+--- exit 0 ---

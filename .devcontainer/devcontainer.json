@@ -1,0 +1,11 @@
+{
+  "name": "ai-harness ticket",
+  "image": "ai-harness/base:4634bb5143c6",
+  "workspaceFolder": "/workspace",
+  "remoteUser": "root",
+  "customizations": {
+    "vscode": {
+      "extensions": []
+    }
+  }
+}
